@@ -11,8 +11,8 @@ small (AI-operated) team can ship, deploy, and monitor it autonomously.
 | Language  | TypeScript (strict)             | Catches errors before deploy.                             |
 | Tests     | Vitest                          | Fast, zero-config unit tests.                             |
 | Lint      | ESLint (`eslint-config-next`)   | Standard Next rules.                                      |
-| CI        | GitHub Actions ([activate](.github/workflows-pending/README.md)) | Lint + test + build on every push/PR. |
-| Host      | **Vercel** (prod) · GitHub Pages (pipeline proof) | See [Deployment](#deployment). |
+| CI        | GitHub Actions (`.github/workflows/ci.yml`, active) | Lint + test + build on every push/PR. |
+| Host      | **Vercel** (server-capable; sole target)          | See [Deployment](#deployment). |
 
 ## Project structure
 
@@ -24,8 +24,7 @@ lib/            Framework-free helpers (pure, unit-tested)
   greeting.ts
   greeting.test.ts
 .github/workflows/
-  ci.yml        Lint + test + build
-  deploy.yml    Static export -> GitHub Pages
+  ci.yml        Lint + test + build (active)
 ```
 
 ## Conventions
@@ -49,35 +48,34 @@ npm run build
 
 ## Deployment
 
-### Production target: Vercel (recommended)
+### Target: Vercel (sole host)
 
-Vercel is the canonical managed host for Next.js: zero-config, managed TLS,
-preview deploys per PR, server/SSR + API routes, generous free tier. It is the
-right home once we add server-side features and payments.
+The app is **server-required** — Stripe webhooks need the Node runtime + raw
+request body, and the auth routes read request cookies — so a static export is
+not viable (see [VER-13](/VER/issues/VER-13)). Vercel is the canonical managed
+host for Next.js: zero-config, managed TLS, preview deploys per PR, server/SSR +
+API routes, generous free tier.
 
-**Ready-to-run (one-time, ~2 min):**
+**Ready-to-run (one-time, ~2 min; needs a Vercel account — board/CEO step):**
 
 1. Import this repo at <https://vercel.com/new> (or `npx vercel link`).
-2. Accept defaults — Vercel auto-detects Next.js. No env vars needed for the
-   skeleton.
-3. Every push to `main` then deploys automatically; PRs get preview URLs.
+2. Accept defaults — Vercel auto-detects Next.js. The default build is the
+   server-capable build; no `next.config.mjs` changes are needed.
+3. Add the M2 env vars (Supabase + Stripe — see
+   [M2 setup](#setup-once-supabase--stripe-accounts-exist)) in the Vercel
+   project's Environment Variables.
+4. Every push to `main` then deploys automatically; PRs get preview URLs.
 
-No code changes are required — the default build (no `DEPLOY_TARGET`) is the
-server-capable Vercel build.
+Vercel's native Git integration handles deploys — no GitHub Actions deploy
+workflow is required (CI in `ci.yml` still gates lint/test/build on every push).
+Switching host later is a two-way door: the app is a standard Next.js server
+build with no Vercel-specific code.
 
-### Pipeline proof: GitHub Pages (live now, token-free)
-
-Once the workflows are [activated](.github/workflows-pending/README.md), every
-push to `main` runs `.github/workflows/deploy.yml`, which builds a **static
-export** (`output: 'export'`) and publishes it to GitHub Pages.
-
-- Enable once: repo **Settings → Pages → Source: GitHub Actions**.
-- URL: `https://<owner>.github.io/<repo>/`.
-- This is a static snapshot only (no SSR/API). For anything dynamic, use Vercel.
-
-The static-vs-server split is handled in `next.config.mjs` via the
-`DEPLOY_TARGET` env var, so the same codebase serves both targets — switching
-production host is a two-way door.
+> **Prior Pages export — dropped.** An earlier `output: 'export'` GitHub Pages
+> workflow proved the pipeline while the app was static. It is incompatible with
+> the M2 server routes and has been removed. The last static artifact may still
+> be served at `https://<owner>.github.io/<repo>/` until Pages is disabled in
+> repo settings; it is a stale snapshot, not the app.
 
 ## Landing page + waitlist (VER-4)
 
@@ -87,10 +85,10 @@ the v1 wedge — iterate the copy then; the structure stays.
 
 ### How capture works (and why)
 
-The autonomous deploy is a **static export** (GitHub Pages, no server), so the
-form posts to an external **managed form/DB endpoint** rather than a Next.js API
-route — a POST route handler cannot be statically exported and would break the
-Pages build. This keeps capture durable with zero server to operate.
+The form posts client-side to an external **managed form/DB endpoint** rather
+than a Next.js API route. This keeps waitlist capture durable with zero backend
+code to maintain and works regardless of host. (A server-side `/api/waitlist`
+route is now possible on Vercel and is an option for later — tracked in VER-11.)
 
 The endpoint is configured at build time:
 
@@ -151,9 +149,9 @@ no responsive imagery, single hero layout, dark-only theme. Flagged for UX.
 ## M2 — auth, payments & entitlements
 
 M2 makes the app **server-dependent** (auth, API routes, Stripe webhook), so the
-canonical host is **Vercel**. The GitHub Pages static export only ever covered
-static pages and is superseded for the full app — a deliberate two-way door
-(`next.config.mjs` still supports both targets).
+host is **Vercel** (sole target — see [Deployment](#deployment)). The earlier
+GitHub Pages static export only ever covered static pages and has been dropped
+for the full app.
 
 ### What's wired
 
