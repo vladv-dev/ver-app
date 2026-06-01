@@ -3,6 +3,9 @@
 /.pnp
 .pnp.js
 
+# captured waitlist submissions (never commit PII)
+/data/*.jsonl
+
 # testing
 /coverage
 

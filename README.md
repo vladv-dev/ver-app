@@ -78,3 +78,63 @@ export** (`output: 'export'`) and publishes it to GitHub Pages.
 The static-vs-server split is handled in `next.config.mjs` via the
 `DEPLOY_TARGET` env var, so the same codebase serves both targets — switching
 production host is a two-way door.
+
+## Landing page + waitlist (VER-4)
+
+The home page (`app/page.tsx`) is the demand-validation landing page with email
+capture (`app/components/WaitlistForm.tsx`). Copy is generic until VER-2 picks
+the v1 wedge — iterate the copy then; the structure stays.
+
+### How capture works (and why)
+
+The autonomous deploy is a **static export** (GitHub Pages, no server), so the
+form posts to an external **managed form/DB endpoint** rather than a Next.js API
+route — a POST route handler cannot be statically exported and would break the
+Pages build. This keeps capture durable with zero server to operate.
+
+The endpoint is configured at build time:
+
+| Env var | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_WAITLIST_ENDPOINT` | Managed endpoint the form POSTs `{ email, source, submittedAt }` to. Unset ⇒ form stays usable but tells visitors signups aren't live yet (no silent drops). |
+| `NEXT_PUBLIC_PRODUCT_NAME` | Product name in copy/title. Generic default. |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Enables privacy-friendly, cookieless analytics. No-op when unset. |
+
+`NEXT_PUBLIC_*` values are inlined into the client bundle — never put secrets
+there. A managed endpoint must accept a **publishable** (non-secret) token.
+
+Pure email logic lives in `lib/waitlist.ts` (validation/normalization) and is
+unit-tested in `lib/waitlist.test.ts`.
+
+### Verify capture end to end (local)
+
+```bash
+node scripts/dev-waitlist-endpoint.mjs          # durable endpoint on :4000
+# in another shell:
+NEXT_PUBLIC_WAITLIST_ENDPOINT=http://localhost:4000 npm run dev
+# submit an email at http://localhost:3000 -> appended to data/waitlist.jsonl
+```
+
+`scripts/dev-waitlist-endpoint.mjs` is the local stand-in that documents the
+contract (POST JSON, dedupe by normalized email, append-only durable store). It
+is **not** for production — swap in a managed backend (below). Captured emails
+(`data/*.jsonl`) are gitignored (PII).
+
+### Going live: pick a managed backend
+
+Recommended default: **Formspree** free tier (no server, endpoint-only, email
+notifications). Alternative: **Supabase** (managed Postgres + publishable anon
+key + RLS insert). Either way: create the account/form, set
+`NEXT_PUBLIC_WAITLIST_ENDPOINT`, redeploy. This is the one step that needs a
+company account — see the VER-4 issue thread for the decision flagged to the CEO.
+
+### Analytics
+
+Set `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` to enable Plausible (cookieless, GDPR-light,
+autonomous-friendly). Signup counts come from the managed backend's dashboard.
+A managed analytics account is the second small decision flagged to the CEO.
+
+### Design debt (for the future UX Designer)
+
+Clean and functional, hand-rolled CSS in `app/globals.css`. No design system,
+no responsive imagery, single hero layout, dark-only theme. Flagged for UX.

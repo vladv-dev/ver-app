@@ -1,0 +1,180 @@
+:root {
+  --bg: #0b0c10;
+  --panel: #15171f;
+  --text: #f3f4f6;
+  --muted: #9aa0ac;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --ok: #34d399;
+  --err: #f87171;
+  --border: #262a36;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 8vw, 6rem) 1.25rem 3rem;
+}
+
+.hero {
+  text-align: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.12);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  line-height: 1.1;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  color: var(--muted);
+  font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+  max-width: 34rem;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+}
+
+/* Waitlist form */
+.wl-form {
+  max-width: 30rem;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.wl-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.wl-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.wl-hp {
+  display: none;
+}
+
+.wl-row input[type='email'] {
+  flex: 1 1 14rem;
+  min-width: 0;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.wl-row input[type='email']:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.wl-row button {
+  flex: 0 0 auto;
+  padding: 0.8rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.wl-row button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.wl-row button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.wl-msg {
+  margin: 0.65rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.wl-msg--ok {
+  color: var(--ok);
+  text-align: center;
+  font-size: 1.05rem;
+  margin: 1rem auto;
+}
+
+.wl-msg--err {
+  color: var(--err);
+}
+
+.wl-msg--info {
+  color: var(--text);
+}
+
+/* Features */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 4rem;
+}
+
+.feature {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.feature h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.4rem;
+}
+
+.feature p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.footer {
+  margin-top: 4rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
