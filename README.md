@@ -147,3 +147,55 @@ A managed analytics account is the second small decision flagged to the CEO.
 
 Clean and functional, hand-rolled CSS in `app/globals.css`. No design system,
 no responsive imagery, single hero layout, dark-only theme. Flagged for UX.
+
+## M2 — auth, payments & entitlements
+
+M2 makes the app **server-dependent** (auth, API routes, Stripe webhook), so the
+canonical host is **Vercel**. The GitHub Pages static export only ever covered
+static pages and is superseded for the full app — a deliberate two-way door
+(`next.config.mjs` still supports both targets).
+
+### What's wired
+
+- **Supabase** — managed Postgres + Auth (email magic link + Google) + Storage.
+  Server/browser/admin clients in `lib/supabase/*`; session refresh in
+  `middleware.ts`.
+- **Stripe** — Checkout (`/api/stripe/checkout`), Customer Portal
+  (`/api/stripe/portal`), and a signature-verified webhook
+  (`/api/stripe/webhook`) that writes entitlement state to `subscriptions`.
+- **Plan gating** — plan catalog in `lib/plans.ts` (Free trial / Starter £29 /
+  Pro £79); entitlement derived in `lib/entitlements.ts`; enforced server-side
+  in routes and `/dashboard`.
+- **Swap-seams** — payments behind `PaymentProvider` (`lib/payments/`), LLM
+  behind `LLMProvider` (`lib/llm/`). Swapping a vendor is a one-file change.
+- **Unit economics** — `lib/usage.ts` turns token usage into costed
+  `usage_events` (cost-per-proposal), tagged by user + plan. Plumbing is live
+  now; real generation lands in M3.
+
+### Setup (once Supabase + Stripe accounts exist)
+
+1. Copy `.env.example` → `.env.local` and fill the M2 vars.
+2. Apply the DB schema: run `supabase/migrations/0001_init.sql` in the Supabase
+   SQL editor (or `supabase db push`).
+3. In Supabase Auth: enable Email and Google providers; add
+   `<APP_URL>/auth/callback` to the redirect allow-list.
+4. In Stripe: create two recurring GBP/month Prices (Starter £29, Pro £79); put
+   their `price_…` ids in `STRIPE_PRICE_STARTER` / `STRIPE_PRICE_PRO`. Add a
+   webhook to `<APP_URL>/api/stripe/webhook` for `customer.subscription.*`
+   events; put its signing secret in `STRIPE_WEBHOOK_SECRET`.
+5. `npm run dev`, sign in at `/login`, subscribe via `/pricing`, see entitlement
+   on `/dashboard`. Use `stripe listen --forward-to localhost:3000/api/stripe/webhook`
+   for local webhook delivery.
+
+### Routes
+
+```
+/login                     Sign in / up (magic link + Google)
+/pricing                   Plans + Stripe Checkout
+/dashboard                 Gated: live plan, status, usage
+/auth/callback             OAuth / magic-link code exchange
+/auth/signout              Clear session
+/api/stripe/checkout       POST → Checkout session URL (authed)
+/api/stripe/portal         POST → Customer Portal URL (authed)
+/api/stripe/webhook        POST ← Stripe → writes entitlement
+```

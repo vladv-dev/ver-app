@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import Script from 'next/script';
 import './globals.css';
 
@@ -26,6 +27,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           margin: 0,
         }}
       >
+        <nav className="nav">
+          <Link href="/" className="nav-brand">
+            {PRODUCT_NAME}
+          </Link>
+          <div className="nav-links">
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/login">Sign in</Link>
+          </div>
+        </nav>
         {children}
         {PLAUSIBLE_DOMAIN && (
           <Script
