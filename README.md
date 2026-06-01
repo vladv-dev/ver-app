@@ -11,7 +11,7 @@ small (AI-operated) team can ship, deploy, and monitor it autonomously.
 | Language  | TypeScript (strict)             | Catches errors before deploy.                             |
 | Tests     | Vitest                          | Fast, zero-config unit tests.                             |
 | Lint      | ESLint (`eslint-config-next`)   | Standard Next rules.                                      |
-| CI        | GitHub Actions                  | Lint + test + build on every push/PR.                     |
+| CI        | GitHub Actions ([activate](.github/workflows-pending/README.md)) | Lint + test + build on every push/PR. |
 | Host      | **Vercel** (prod) · GitHub Pages (pipeline proof) | See [Deployment](#deployment). |
 
 ## Project structure
@@ -67,9 +67,9 @@ server-capable Vercel build.
 
 ### Pipeline proof: GitHub Pages (live now, token-free)
 
-To prove the pipeline end to end without any external account, every push to
-`main` runs `.github/workflows/deploy.yml`, which builds a **static export**
-(`output: 'export'`) and publishes it to GitHub Pages.
+Once the workflows are [activated](.github/workflows-pending/README.md), every
+push to `main` runs `.github/workflows/deploy.yml`, which builds a **static
+export** (`output: 'export'`) and publishes it to GitHub Pages.
 
 - Enable once: repo **Settings → Pages → Source: GitHub Actions**.
 - URL: `https://<owner>.github.io/<repo>/`.
