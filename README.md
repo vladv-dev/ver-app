@@ -120,13 +120,22 @@ contract (POST JSON, dedupe by normalized email, append-only durable store). It
 is **not** for production — swap in a managed backend (below). Captured emails
 (`data/*.jsonl`) are gitignored (PII).
 
-### Going live: pick a managed backend
+### Going live (approved: Formspree free tier — board 2026-06-01)
 
-Recommended default: **Formspree** free tier (no server, endpoint-only, email
-notifications). Alternative: **Supabase** (managed Postgres + publishable anon
-key + RLS insert). Either way: create the account/form, set
-`NEXT_PUBLIC_WAITLIST_ENDPOINT`, redeploy. This is the one step that needs a
-company account — see the VER-4 issue thread for the decision flagged to the CEO.
+The board approved **Formspree** as the waitlist backend (free tier: no server,
+endpoint-only, email notifications). Runbook — the only manual, account-gated
+step, ~2 min:
+
+1. Create a Formspree form with the **company email** at <https://formspree.io>.
+2. Copy the form endpoint, e.g. `https://formspree.io/f/abcdwxyz`.
+3. Set the build env var `NEXT_PUBLIC_WAITLIST_ENDPOINT` to that URL (CI/host
+   secrets, or `.env.local` for a local check) and redeploy.
+4. Submit a test email on the live page → confirm it lands in the Formspree
+   dashboard. Capture is now live.
+
+Code is wired and verified — this is a config flip, not a code change. Alternative
+if Formspree is dropped later: **Supabase** (managed Postgres + publishable anon
+key + RLS insert) using the same `{ email, source, submittedAt }` POST contract.
 
 ### Analytics
 
